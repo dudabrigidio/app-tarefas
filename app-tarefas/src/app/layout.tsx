@@ -17,14 +17,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      
-      <body className="flex-col min-h-screen"> 
-        <ToastContainer/>
-        <Cabecalho/>
+      <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"
           rel="stylesheet"
         />
+      </head>
+      
+      <body className="flex-col min-h-screen"> 
+        <ToastContainer/>
+        <Cabecalho/>
+        
           {children}
         <Rodape/>
       </body>
