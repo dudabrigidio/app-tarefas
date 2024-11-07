@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Rodape from "@/components/Rodape/Rodape";
 import Cabecalho from "@/components/Cabecalho/Cabecalho";
+import { ToastContainer } from "react-toastify";
 
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="pt-br">
       
       <body className="flex-col min-h-screen"> 
+        <ToastContainer/>
         <Cabecalho/>
         <link
           href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"

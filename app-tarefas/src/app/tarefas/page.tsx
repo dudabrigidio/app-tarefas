@@ -34,6 +34,16 @@ export default function Tarefa() {
         return format(new Date(date), 'dd/MM/yyyy');  
     }
 
+    //Confirmar Delete
+    const [isModalConfirmarDeleteOpen, setIsModalConfirmarDeleteOpen] = useState(false);
+    const[tarefaDeletando, setTarefaDeletando] = useState<number | null>(null);
+    const openModalConfirmarDelete = (idTarefa: number) => {
+        setTarefaDeletando(idTarefa);
+        setIsModalConfirmarDeleteOpen(true);
+    }
+    const closeModalConfirmarDelete = () => setIsModalConfirmarDeleteOpen(false);
+
+
     // GET
     useEffect(() => {
         const fetchTarefas = async () => {
@@ -72,7 +82,7 @@ export default function Tarefa() {
 
 
             if (response.ok) {
-                alert("Tarefa atualizado com sucesso!");
+                console.log("Tarefa atualizado com sucesso!");
                 closeModalAlterar();
             }
 
@@ -102,16 +112,46 @@ export default function Tarefa() {
             });
             
             if(response.ok){
-                alert("Tarefa removida com sucesso!")
+                console.log("Tarefa removida com sucesso!")  
+                window.location.reload();          
             }
 
         } catch (error) {
             console.error("Falha ao remover tarefa.", error);
             alert("Falha ao remover tarefa!")
         }
-        window.location.reload();
 
     }
+
+    
+
+    const setOrdem = async (ordem: number, idTarefa: number) => {
+    
+        try {
+            console.log(`Enviado ordem: ${ordem}, idTarefa: ${idTarefa}`);
+            const response = await fetch(
+                `http://localhost:8080/tarefas/setOrdem?ordem=${ordem}&idTarefa=${idTarefa}`,
+                {
+                    method: "PUT",
+                    headers: {
+                    "Content-Type": "application/json",
+                    }
+                }
+            );
+
+            if (response.ok) {
+                console.log( 'Ordem alterada')
+            }
+
+            } catch (error) {
+            console.error("Erro ao atualizar tarefa: ", error);
+            }
+            
+    };
+
+
+
+
 
     //POST
     const handleSubmitNovaTarefa = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -139,15 +179,23 @@ export default function Tarefa() {
                 return;
             }
 
+            const tarefaExiste = tarefas.find(tarefa => (tarefa.nome === novaTarefa.nome) )
+
+            if (tarefaExiste) {
+                alert("Tarefa já existe");
+            }
+            
             if (response.ok){
-                alert("Tarefa adiciona com sucesso!")
+                console.log("Tarefa adiciona com sucesso!")
                 closeModalInserir();
             }
         } catch (error) {
             console.error("Falha ao adicionar tarefa.", error);
             alert("Falha ao adicionar tarefa!")
         }
+
         window.location.reload();
+
     }
 
     const moverParaCima = async (index: number) => {
@@ -173,7 +221,6 @@ export default function Tarefa() {
                 await setOrdem(tarefaAtual.ordem, tarefaAtual.idTarefa);
 
                 console.log("Todas as ordens foram atualizadas. Recarregando...");
-                alert("Ordem atualizada!")
                 window.location.reload();
             } catch (error) {
                 console.error("Erro ao atualizar ordens:", error);
@@ -210,32 +257,6 @@ export default function Tarefa() {
         }
     };
 
-    const setOrdem = async (ordem: number, idTarefa: number) => {
-    
-        try {
-            const response = await fetch(
-                `http://localhost:8080/tarefas/setOrdem?ordem=${ordem}&idTarefa=${idTarefa}`,
-                {
-                    method: "PUT",
-                    headers: {
-                    "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(novaTarefa),
-                }
-            );
-
-            
-    
-            if (response.ok) {
-                console.log( 'Ordem alterada')
-            }
-
-            } catch (error) {
-            console.error("Erro ao atualizar tarefa: ", error);
-            alert("Erro ao atualizar Tarefa!");
-            }
-            
-        };
     
 
 
@@ -249,11 +270,9 @@ export default function Tarefa() {
                         .map((tarefa: TipoTarefa, index) => (
                             <div
                                 key={tarefa.idTarefa}
-                                className=" relative mx-5 sm:mx-[100px] md:mx-[200px] lg:mx-[300px]  h-[250px] bg-red-700 p-10 pt-8  m-5 mt- 2 rounded-lg text-white text-[clamp(1.1rem,_5vw,_1.3rem)] mb-10 ">
-                                <p className="absolute top-[-10px] left-[-10px]  w-10 h-10 bg-white border-2 border-red-700 text-red-700 flex justify-center items-center rounded-full">
-                                    {tarefa.ordem}
-                                </p>
-                                {/* Condição para não exibir seta para cima na primeira tarefa  */}
+                                className=" relative mx-5 sm:mx-[100px] md:mx-[200px] lg:mx-[300px]  h-[250px] bg-red-700 p-10 pt-8  m-5 mt- 2 rounded-lg text-white text-[clamp(1.1rem,_4vw,_1.3rem)] mb-10">
+                                
+                                {/* não exibir seta para cima na primeira tarefa  */}
                                 {index > 0 && (
                                 <button
                                     onClick={() => moverParaCima(index)}
@@ -263,25 +282,52 @@ export default function Tarefa() {
                                     ↑
                                 </button>
                                 )}
-                                {/* Condição para não exibir seta para baixo na última tarefa */}
+                                {/* não exibir seta para baixo na última tarefa */}
                                 {index < tarefas.length - 1 && (
                                 <button
                                     onClick={() => moverParaBaixo(index)}
-                                    className="absolute ${index === 0 ? 'left-[40px]' : 'left-[80px]'} left-[80px] bottom-[20px] bg-white text-red-700 hover:bg-red-900 px-3 py-1 rounded mb-3"
+                                    className="absolute left-[80px] bottom-[20px] bg-white text-red-700 hover:bg-red-900 px-3 py-1 rounded mb-3"
                                     style={{ left: index === 0 ? '40px' : '80px' }}
                                 >
                                     ↓
                                 </button>
                                 )}
 
-                                <h2 className="text-[clamp(1.5rem,_5vw,_2.8rem)]">{tarefa.nome}</h2>
+                                <h2 className="text-[clamp(1.0rem,_5vw,_2.6rem)] md:text-1.0rem ">{tarefa.nome}</h2>
                                 <div className="flex flex-row mt-5 mr-5">
-                                    <p className="mr-20">R${Number(tarefa.custo).toFixed(2)}</p> 
+                                    <p className={`mr-20 ${Number(tarefa.custo) >= 1000 ? 'flex bg-white text-red-700 rounded-md px-3 px-3 items-center' : ''}`}
+                                    >R${Number(tarefa.custo).toFixed(2)}
+                                    </p> 
                                     <p>Data limite: {formatDate(tarefa.dataLimite)}</p>
                                 </div>
-                                <button type="button" onClick={()=> handleDelete(tarefa.idTarefa)} className="absolute mr-2 top-4 right-4 text-white text-3xl hover:text-red-800">X</button>
+                                <button type="button" onClick={() => openModalConfirmarDelete(tarefa.idTarefa)} className="absolute mr-2 top-4 right-4 text-white text-3xl hover:text-red-800">X</button>
+
+
+                                {/* Modal confirmar Delete*/}
+                                {isModalConfirmarDeleteOpen && tarefa.idTarefa === tarefaDeletando && (
+                                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                                    <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-full mx-[2em] md:w-[30rem] lg:w-[40rem] h-[10rem] justify-center">
+                                        
+                                        <h2 className="flex text-4xl text-white mb-4 justify-center">Deseja deletar tarefa {tarefa.nome} ?</h2>
+                                        <div className="flex flex-row justify-center gap-4">
+                                            <button type="submit" onClick={() => handleDelete(tarefa.idTarefa)} className=" mt-4 px-4 py-2 bg-red-800 text-white rounded hover:bg-white hover:text-red-700">
+                                                    sim
+                                            </button>
+                                            <button type="submit" onClick={closeModalConfirmarDelete} className="mt-4 px-4 py-2 bg-red-800 text-white rounded hover:bg-white hover:text-red-700">
+                                                    não
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                    </div>
+                                )}
+                                
+                                
+                                
+                                
                                 <button onClick={() => openModalAlterar(tarefa.idTarefa)} className="absolute mr-4 bottom-7 right-8 mt-4 px-8 py-2 hover:bg-red-800 hover:text-white rounded-full bg-white text-red-700">Editar</button>
         
+                                {/* Modal Alterar*/}
                                 {isModalAlterarOpen && tarefa.idTarefa === tarefaEditando && (
                                     
                                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
@@ -290,7 +336,7 @@ export default function Tarefa() {
                                                 X
                                             </button>
         
-                                            <h2 className="text-4xl mb-5">Editar Dados</h2>
+                                            <h2 className="text-4xl mb-5 ">Editar Dados</h2>
                                             <form onSubmit={(e) => handleSubmitEdit(e, tarefa.idTarefa)}>
                                                 <label htmlFor="nome" className="text-3lg">Nome:</label>
                                                 <input
@@ -339,10 +385,11 @@ export default function Tarefa() {
                         ))}
 
                         <button onClick={openModalInserir} 
-                            className="text-[clamp(1.5rem,_5vw,_2rem)] relative mx-5 sm:mx-[100px] md:mx-[200px] lg:mx-[500px] m-10 mt-20 px-8 py-4 hover:bg-red-800 hover:text-white rounded-full text-white bg-red-700 flex justify-center">
+                            className="text-[clamp(1.5rem,_5vw,_2rem)] relative mx-5 sm:mx-[100px] md:mx-[200px] lg:mx-[500px] m-10 mt-20 px-8 py-4 rounded-full hover:bg-white hover:text-red-700 hover:border-4 hover:border-red-700 text-white bg-red-700 border-4 border-white flex justify-center">
                             Nova Tarefa
                         </button>
                         
+                        {/* Modal Inserir*/}
                         {isModalInserirOpen  && ( 
                             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
                             <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-full mx-[2em] md:w-[30rem] lg:w-[40rem]">
