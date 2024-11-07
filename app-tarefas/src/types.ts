@@ -2,7 +2,7 @@ export interface TipoTarefa {
 
     idTarefa: number;
     nome: string;
-    custo: number,
+    custo: string,
 	dataLimite: string,
 	ordem: number
 }
