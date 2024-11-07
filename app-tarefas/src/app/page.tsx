@@ -1,10 +1,11 @@
+import { redirect } from 'next/navigation';
 
 
 export default function Home() {
+
+  redirect('/tarefas')
   return (
     <div>
-      <h1>LISTA DE TAREFAS</h1>
-    
     </div>
   );
 }
