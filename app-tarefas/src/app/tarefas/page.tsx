@@ -150,9 +150,6 @@ export default function Tarefa() {
     };
 
 
-
-
-
     //POST
     const handleSubmitNovaTarefa = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
