@@ -6,6 +6,7 @@ import { format } from "date-fns";
 
 export default function Tarefa() {
 
+
     //Modal alterar tarefa
     const [isModalAlterarOpen, setIsModalAlterarOpen] = useState(false);
     const [tarefaEditando, setTarefaEditando] = useState<number | null>(null);
@@ -68,7 +69,8 @@ export default function Tarefa() {
                     body: JSON.stringify(novaTarefa),
                 }
             );
-    
+
+
             if (response.ok) {
                 alert("Tarefa atualizado com sucesso!");
                 closeModalAlterar();
@@ -78,6 +80,16 @@ export default function Tarefa() {
             console.error("Erro ao atualizar tarefa: ", error);
             alert("Erro ao atualizar Tarefa!");
             }
+
+            if (
+                !novaTarefa.nome ||
+                !novaTarefa.custo ||
+                !novaTarefa.dataLimite 
+            ) {
+                alert("Todos os campos são obrigatórios.");
+                return;
+            }
+
             window.location.reload();
         };
 
@@ -117,6 +129,16 @@ export default function Tarefa() {
                 },
                 body: JSON.stringify(novaTarefa),
             });
+
+            if (
+                !novaTarefa.nome ||
+                !novaTarefa.custo ||
+                !novaTarefa.dataLimite 
+            ) {
+                alert("Todos os campos são obrigatórios.");
+                return;
+            }
+
             if (response.ok){
                 alert("Tarefa adiciona com sucesso!")
                 closeModalInserir();
@@ -128,7 +150,7 @@ export default function Tarefa() {
         window.location.reload();
     }
 
-    const moverParaCima = (index: number) => {
+    const moverParaCima = async (index: number) => {
         if (index > 0) {
             
             const tarefasAtualizadas = [...tarefas];
@@ -142,14 +164,25 @@ export default function Tarefa() {
             tarefaAtual.ordem = tarefaAnterior.ordem;
             tarefaAnterior.ordem = novaOrdem;
     
-            
+            try{
+                console.log("recebe -1: " + "id: " + tarefaAtual.idTarefa);
+                await setOrdem(-1, tarefaAtual.idTarefa);
+                console.log("recebe: " + tarefaAnterior.ordem + "id: " + tarefaAnterior.idTarefa)
+                await setOrdem(tarefaAnterior.ordem, tarefaAnterior.idTarefa);
+                console.log("recebe: " + tarefaAtual.ordem + "id: " + tarefaAtual.idTarefa)
+                await setOrdem(tarefaAtual.ordem, tarefaAtual.idTarefa);
 
-            setOrdem(tarefaAtual.ordem, tarefaAtual.idTarefa);
-            setOrdem(tarefaAnterior.ordem, tarefaAnterior.idTarefa);
+                console.log("Todas as ordens foram atualizadas. Recarregando...");
+                alert("Ordem atualizada!")
+                window.location.reload();
+            } catch (error) {
+                console.error("Erro ao atualizar ordens:", error);
+                alert("Erro ao atualizar ordens:");
+            }
         }
     };
     
-    const moverParaBaixo = (index: number) => {
+    const moverParaBaixo = async (index: number) => {
         if (index < tarefas.length - 1) {
 
             const tarefasAtualizadas = [...tarefas];
@@ -164,9 +197,16 @@ export default function Tarefa() {
             tarefaProxima.ordem = novaOrdem;
     
             
+            try{
+                await setOrdem(-1, tarefaAtual.idTarefa);
+                await setOrdem(tarefaProxima.ordem, tarefaProxima.idTarefa);
+                await setOrdem(tarefaAtual.ordem, tarefaAtual.idTarefa);
 
-            setOrdem(tarefaAtual.ordem, tarefaAtual.idTarefa);
-            setOrdem(tarefaProxima.ordem, tarefaProxima.idTarefa);
+                console.log("Todas as ordens foram atualizadas. Recarregando...");
+                window.location.reload();
+            } catch (error) {
+                console.error("Erro ao atualizar ordens:", error);
+            }
         }
     };
 
@@ -174,7 +214,7 @@ export default function Tarefa() {
     
         try {
             const response = await fetch(
-                `http://localhost:8080/tarefas/setOrdem?ordem=${ordem}?idTarefa=${idTarefa}`,
+                `http://localhost:8080/tarefas/setOrdem?ordem=${ordem}&idTarefa=${idTarefa}`,
                 {
                     method: "PUT",
                     headers: {
@@ -183,17 +223,18 @@ export default function Tarefa() {
                     body: JSON.stringify(novaTarefa),
                 }
             );
+
+            
     
             if (response.ok) {
-                alert("Tarefa atualizado com sucesso!");
-                closeModalAlterar();
+                console.log( 'Ordem alterada')
             }
 
             } catch (error) {
             console.error("Erro ao atualizar tarefa: ", error);
             alert("Erro ao atualizar Tarefa!");
             }
-            window.location.reload();
+            
         };
     
 
@@ -202,7 +243,7 @@ export default function Tarefa() {
         return (
             <div>
                 <div className="flex flex-col justify-center items-center mt-20 text-white ">
-                    <div className="w-full flex flex-col justify-center">
+                    <div className="w-full flex flex-col justify-center  md:justify-between ">
                         
                         {tarefas.sort((a,b) => a.ordem - b.ordem)
                         .map((tarefa: TipoTarefa, index) => (
@@ -212,11 +253,12 @@ export default function Tarefa() {
                                 <p className="absolute top-[-10px] left-[-10px]  w-10 h-10 bg-white border-2 border-red-700 text-red-700 flex justify-center items-center rounded-full">
                                     {tarefa.ordem}
                                 </p>
-                                {/* Condição para não exibir seta para cima na primeira tarefa */}
+                                {/* Condição para não exibir seta para cima na primeira tarefa  */}
                                 {index > 0 && (
                                 <button
                                     onClick={() => moverParaCima(index)}
-                                    className="absolute left-[-50px] bg-red-700 text-white hover:bg-red-900 px-2 py-1 rounded mr-2 mb-3"
+                                    className="absolute left-[40px] bottom-[20px] bg-white text-red-700 hover:bg-red-900 px-3 py-1 rounded mr-2 mb-3 "
+                                    
                                 >
                                     ↑
                                 </button>
@@ -225,7 +267,8 @@ export default function Tarefa() {
                                 {index < tarefas.length - 1 && (
                                 <button
                                     onClick={() => moverParaBaixo(index)}
-                                    className="absolute left-[-90px] bg-red-700 text-white hover:bg-red-900 px-2 py-1 rounded mb-3"
+                                    className="absolute ${index === 0 ? 'left-[40px]' : 'left-[80px]'} left-[80px] bottom-[20px] bg-white text-red-700 hover:bg-red-900 px-3 py-1 rounded mb-3"
+                                    style={{ left: index === 0 ? '40px' : '80px' }}
                                 >
                                     ↓
                                 </button>
@@ -242,7 +285,7 @@ export default function Tarefa() {
                                 {isModalAlterarOpen && tarefa.idTarefa === tarefaEditando && (
                                     
                                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-                                        <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-96">
+                                        <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-full mx-[2em] md:w-[30rem] lg:w-[40rem]">
                                             <button type="button" onClick={closeModalAlterar} className="absolute mr-2 top-2 right-2 text-white text-lg">
                                                 X
                                             </button>
@@ -283,6 +326,7 @@ export default function Tarefa() {
                                                     }
                                                     className="my-2 p-2 w-full border border-gray-300 rounded-lg text-gray-600"
                                                 />
+                                                <p className="text-sm m-2 mt-4">* Preencha todos os campos</p>
         
                                                 <button type="submit" className="mt-4 px-4 py-2 bg-red-800 text-white 0 rounded hover:bg-white hover:text-red-700">
                                                     Salvar
@@ -301,7 +345,7 @@ export default function Tarefa() {
                         
                         {isModalInserirOpen  && ( 
                             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-                            <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-96">
+                            <div className="relative flex flex-col bg-red-700 p-6 rounded-lg shadow-lg w-full mx-[2em] md:w-[30rem] lg:w-[40rem]">
                                 <button type="button" onClick={closeModalInserir} className="absolute mr-2 top-2 right-2 text-white text-lg">
                                     X
                                 </button>
@@ -342,6 +386,7 @@ export default function Tarefa() {
                                         }
                                         className="my-2 p-2 w-full border border-gray-300 rounded-lg text-gray-600"
                                     />
+                                    <p className="text-sm m-2 mt-4">* Preencha todos os campos</p>
 
                                     <button type="submit" className="mt-4 px-4 py-2 bg-red-800 text-white 0 rounded hover:bg-white hover:text-red-700">
                                         Adicionar
